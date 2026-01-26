@@ -10,7 +10,7 @@ def post_to_supabase(data):
     return requests.post(f"{URL}/rest/v1/bjb_results", json=data, headers=headers)
 
 st.set_page_config(page_title="Физика ТЖБ", layout="wide")
-st.title("9-СЫНЫП ФИЗИКА. 1-ЖАРТЫЖЫЛДЫҚ ТЖБ")
+st.title("9-СЫНЫП ФИЗИКА. 1-ЖАРТЫЖЫЛДЫҚ БАҚЫЛАУ")
 st.info("Уақыты: 45 минут | Жалпы ұпай: 25 ұпай")
 
 with st.sidebar:
