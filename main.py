@@ -1,67 +1,181 @@
 import streamlit as st
 import requests
+import streamlit.components.v1 as components
+import json
 
-# БАПТАУЛАР
-URL = st.secrets["SUPABASE_URL"]
-KEY = st.secrets["SUPABASE_KEY"]
+# --- 1. БАЗА БАПТАУЛАРЫ ---
+URL = "https://bjqoazdkiyhrdrfkkgaz.supabase.co"
+KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqcW9hemRraXlocmRyZmtrZ2F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NTM4NjIsImV4cCI6MjA4NTMyOTg2Mn0.0t4S6fa9CmYa6WBdDvkVr4V4H91wLx9xLYtcEdriX4I"
+TABLE_NAME = "tjb_8_synyp"
 
-def post_to_supabase(data):
+st.set_page_config(page_title="8-СЫНЫП ФИЗИКА БЖБ", layout="wide", page_icon="⚡")
+
+# Сессияны басқару
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+
+# --- 2. СТИЛЬ (Дизайнды жақсарту) ---
+st.markdown("""
+    <style>
+    * { -webkit-user-select: none; user-select: none; } 
+    .stApp { background-color: #f8f9fa; }
+    .stRadio > div { background-color: white; padding: 20px; border-radius: 15px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; }
+    .stTextArea textarea { font-size: 16px; border-radius: 10px; }
+    .main-title { color: #1e3a8a; text-align: center; font-weight: 800; }
+    .result-card { background-color: #ffffff; padding: 25px; border-radius: 15px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+""", unsafe_allow_html=True)
+
+def send_data(payload):
     headers = {"apikey": KEY, "Authorization": f"Bearer {KEY}", "Content-Type": "application/json"}
-    return requests.post(f"{URL}/rest/v1/bjb_results", json=data, headers=headers)
+    return requests.post(f"{URL}/rest/v1/{TABLE_NAME}", json=payload, headers=headers)
 
-st.set_page_config(page_title="Физика ТЖБ", layout="wide")
-st.title("9-СЫНЫП ФИЗИКА. 1-ЖАРТЫЖЫЛДЫҚ БАҚЫЛАУ")
-st.info("Уақыты: 45 минут | Жалпы ұпай: 25 ұпай")
+# --- 3. БАСТЫ БЕТ ---
+st.markdown("<h1 class='main-title'>⚡ 8-СЫНЫП ФИЗИКА: БЖБ ЖҰМЫСЫ</h1>", unsafe_allow_html=True)
 
-with st.sidebar:
-    st.header("Оқушы мәліметі")
-    student_name = st.text_input("Аты-жөніңіз:")
-    student_class = st.selectbox("Сыныбыңыз:", ["9 A", "9 Ә", "9 Б", "9 В"])
-
-with st.form("tjb_form"):
-    st.header("А БӨЛІМІ: Тест тапсырмалары (10 ұпай)")
+if st.session_state.submitted:
+    st.balloons()
+    st.success("🎉 Жұмысың сәтті қабылданды! Енді мұғалім тексергенше күте тұр немесе төменнен нәтижеңді ізде.")
+    if st.button("Жаңадан бастау 🔄"):
+        st.session_state.submitted = False
+        st.rerun()
+else:
+    st.info("ℹ️ **Нұсқаулық:** Сұрақтарды мұқият оқып, жауап беріңіз. Барлық өрістерді толтыру міндетті. Максималды ұпай: 20.")
     
-    q1 = st.radio("1. Материялық нүкте шеңбер бойымен қозғалып, бастапқы нүктесіне қайта келді. Орын ауыстыруы (S) мен жүрген жолы (l) қандай?", ["A) S = 2πR; l = 0", "B) S = 0; l = 2πR", "C) S = 0; l = 0", "D) S = 2πR; l = 2πR"], index=None)
-    q2 = st.radio("2. Дене 5 секунд ішінде жылдамдығын 0-ден 10 м/с-қа дейін арттырды. Үдеуі?", ["A) 5 м/с²", "B) 2 м/с²", "C) 10 м/с²", "D) 0 м/с²"], index=None)
-    q3 = st.radio("3. Жұлдыздардың өзара орналасуын сақтайтын тұрақты топтар?", ["A) Галактикалар", "B) Планеталар", "C) Шоқжұлдыздар", "D) Тұмандықтар"], index=None)
-    q4 = st.radio("4. Инерциялық санақ жүйесі дегеніміз?", ["A) Үдеумен қозғалатын жүйе", "B) Тыныштықтағы немесе бірқалыпты түзусызықты қозғалатын жүйе", "C) Шеңбер бойымен қозғалатын жүйе", "D) Кез келген жүйе"], index=None)
-    q5 = st.radio("5. Ауырлық күшінің формуласы:", ["A) F = kx", "B) F = μN", "C) F = mg", "D) F = ma"], index=None)
-    q6 = st.radio("6. Ньютонның үшінші заңы бойынша күштер:", ["A) Әр түрлі денелерге әсер етеді, бағыттары қарама-қарсы, шамалары тең", "B) Бір денеге әсер етеді, теңгеріледі", "C) Бағыттары бірдей, шамалары әр түрлі", "D) Тек тыныштықтағы денелерге әсер етеді"], index=None)
-    q7 = st.radio("7. Қашықтықты 2 есе арттырсақ, тартылыс күші қалай өзгереді?", ["A) 2 есе артады", "B) 2 есе кемиді", "C) 4 есе артады", "D) 4 есе кемиді"], index=None)
-    q8 = st.radio("8. Кеплердің 1-заңы бойынша ғаламшарлар траекториясы қандай?", ["A) Шеңбер", "B) Эллипс", "C) Парабола", "D) Түзу"], index=None)
-    q9 = st.radio("9. Центрге тартқыш үдеудің формуласы:", ["A) a = v/t", "B) a = v²/R", "C) a = ωR", "D) a = 4π²R"], index=None)
-    q10 = st.radio("10. Лифт 10 м/с² үдеумен төмен құлағанда, жолаушының салмағы?", ["A) P = mg", "B) P = 2mg", "C) P = 0 (Салмақсыздық)", "D) P = m(g-a)"], index=None)
+    col1, col2 = st.columns(2)
+    with col1:
+        name = st.text_input("👤 Оқушының аты-жөні:", placeholder="Мысалы: Оспанов Арман")
+    with col2:
+        s_class = st.selectbox("🏫 Сыныбыңыз:", ["8 А", "8 Б", "8 В", "8 Г"])
 
-    st.header("В БӨЛІМІ: Қысқа жауапты тапсырмалар (12 ұпай)")
-    st.write("11-тапсырма. Автобус жүріп келе жатып кенеттен тоқтағанда, жолаушылар алға қарай еңкейеді")
-    q11a = st.text_input("а) Бұл құбылыс физикада қалай аталады?")
-    q11b = st.text_input("b) Инерция құбылысына өмірден бір мысал келтіріңіз:")
+    if name:
+        # ANTI-CHEAT JS
+        components.html(f"""
+            <script>
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let alarmInterval;
+            let isSubmitting = false;
+
+            function startAlarm() {{
+                if (isSubmitting) return;
+                if (audioCtx.state === 'suspended') {{ audioCtx.resume(); }}
+                alarmInterval = setInterval(() => {{
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }}, 300);
+            }}
+
+            function stopAlarm() {{ clearInterval(alarmInterval); }}
+
+            document.addEventListener("visibilitychange", function() {{
+                if (document.hidden && !isSubmitting) {{
+                    startAlarm();
+                    setTimeout(function() {{
+                        if (document.hidden && !isSubmitting) {{
+                            const payload = {{
+                                student_name: "{name}",
+                                student_class: "{s_class}",
+                                status: "cheated",
+                                ai_feedback: "🚫 Жұмыс ЖОЙЫЛДЫ: Тест кезінде басқа терезеге ауыстыңыз (Анти-чит)."
+                            }};
+                            fetch('{URL}/rest/v1/{TABLE_NAME}', {{
+                                method: 'POST',
+                                headers: {{ 'apikey': '{KEY}', 'Authorization': 'Bearer {KEY}', 'Content-Type': 'application/json' }},
+                                body: JSON.stringify(payload)
+                            }}).then(() => {{ 
+                                isSubmitting = true;
+                                stopAlarm();
+                                window.parent.location.reload(); 
+                            }});
+                        }}
+                    }}, 5000);
+                }} else {{
+                    stopAlarm();
+                }}
+            }});
+            </script>
+        """, height=0)
+
+        with st.form("exam_8_physics"):
+            st.subheader("📍 А БӨЛІМІ: Тест тапсырмалары (10 ұпай)")
+            q1 = st.radio("1. Ішкі энергияның өлшем бірлігі қандай?", ["A) Ватт", "B) Джоуль", "C) Ньютон", "D) Паскаль"], index=None)
+            q2 = st.radio("2. Жылу берілудің қай түрі вакуумда жүзеге асады?", ["A) Конвекция", "B) Жылу өткізгіштік", "C) Сәуле шығару", "D) Диффузия"], index=None)
+            q3 = st.radio("3. Судың қайнау температурасы қалыпты жағдайда қанша?", ["A) 0°C", "B) 80°C", "C) 100°C", "D) 273°C"], index=None)
+            q4 = st.radio("4. Термодинамиканың 1-заңының формуласы:", ["A) Q = ΔU + A", "B) Q = cmΔt", "C) η = A/Q", "D) pV = nRT"], index=None)
+            q5 = st.radio("5. Булану кезінде сұйықтықтың температурасы қалай өзгереді?", ["A) Жоғарылайды", "B) Төмендейді", "C) Өзгермейді", "D) Басында артады"], index=None)
+            q6 = st.radio("6. Элементар электр зарядының мәні қанша?", ["A) 1.6 * 10^-19 Кл", "B) 9 * 10^9 Кл", "C) 1.6 * 10^-31 Кл", "D) 1 Кл"], index=None)
+            q7 = st.radio("7. Аттас зарядтар (+ және +) қалай әрекеттеседі?", ["A) Тартылады", "B) Тебіледі", "C) Әрекеттеспейді", "D) Бейтараптанады"], index=None)
+            q8 = st.radio("8. Дененің электрленгенін анықтайтын аспап:", ["A) Термометр", "B) Барометр", "C) Электроскоп", "D) Спидометр"], index=None)
+            q9 = st.radio("9. Кулон заңының формуласы:", ["A) F = ma", "B) F = k*q1*q2/r^2", "C) F = mg", "D) E = F/q"], index=None)
+            q10 = st.radio("10. Шыны таяқшаны жібекке үйкегенде таяқша қандай заряд алады?", ["A) Теріс (-)", "B) Оң (+)", "C) Бейтарап (0)", "D) Басында оң"], index=None)
+
+            st.subheader("📍 В БӨЛІМІ: Қысқа жауаптар (6 ұпай)")
+            q11 = st.text_area("11. Неліктен металл қасық ағаш қасыққа қарағанда суық болып көрінеді?", height=70, placeholder="Өз жауабыңызды жазыңыз...")
+            q12 = st.text_area("12. Егер екі зарядтың арақашықтығын 3 есе арттырсақ, Кулон күші қалай өзгереді?", height=70, placeholder="Есептелу жолын немесе жауабын жазыңыз...")
+
+            st.subheader("📍 С БӨЛІМІ: Есеп шығару (4 ұпай)")
+            q13 = st.text_area("13. Есеп: r = 10 см, q1 = 2*10^-7 Кл, q2 = 5*10^-7 Кл. Өзара әрекеттесу күшін (F) табыңыз:", height=100, placeholder="Шешуі мен жауабын көрсетіңіз...")
+
+            submit_btn = st.form_submit_button("ЖҰМЫСТЫ АЯҚТАУ ✅")
+
+            if submit_btn:
+                if not name or len(name) < 3:
+                    st.error("❌ Өтінеміз, толық аты-жөніңізді жазыңыз!")
+                else:
+                    all_answers = {
+                        "section_a": [q1, q2, q3, q4, q5, q6, q7, q8, q9, q10],
+                        "section_b": {"q11": q11, "q12": q12},
+                        "section_c": {"q13": q13}
+                    }
+                    payload = {
+                        "student_name": name, 
+                        "student_class": s_class,
+                        "answers": all_answers, # json.dumps-сыз жіберу (jsonb үшін)
+                        "status": "pending"
+                    }
+                    resp = send_data(payload)
+                    if resp.status_code in [200, 201, 204]:
+                        st.session_state.submitted = True
+                        st.rerun()
+                    else:
+                        st.error(f"⚠️ Қате кетті: {resp.text}")
+
+# --- 4. НӘТИЖЕНІ ІЗДЕУ ---
+st.markdown("---")
+st.markdown("### 🔎 Нәтижені тексеру")
+search_query = st.text_input("Аты-жөніңізді енгізіңіз (мысалы: Арман):", key="search_input")
+
+if search_query:
+    s_headers = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+    res = requests.get(f"{URL}/rest/v1/{TABLE_NAME}?student_name=ilike.*{search_query}*&select=*&order=id.desc", headers=s_headers)
     
-    st.write("12-тапсырма. Динамика есебі")
-    q12a = st.text_input("а) Дененің үдеуі неге тең (F=8H, m=2кг)?")
-    q12b = st.text_area("b) Күшті 2 есе арттырсақ, үдеу қалай өзгереді? Түсіндіріңіз:")
-    
-    st.write("13-тапсырма. Астрономия")
-    q13a = st.text_area("а) Жұлдыз бен ғаламшардың айырмашылығы?")
-    q13b = st.text_input("b) Күн жүйесіндегі ең үлкен ғаламшар:")
-
-    st.header("С БӨЛІМІ: Талдау тапсырмасы (3 ұпай)")
-    st.write("14-тапсырма. Горизонталь лақтырылған дене (h=20м, v₀=10м/с)")
-    q14a = st.text_input("a) Түсу уақыты (t):")
-    q14b = st.text_input("b) Түсу қашықтығы (L):")
-    q14c = st.text_input("c) Траектория пішіні қандай?")
-
-    submit = st.form_submit_button("Жұмысты аяқтау және тапсыру ✅")
-
-if submit:
-    if not student_name:
-        st.error("Аты-жөніңізді жазыңыз!")
+    if res.status_code == 200:
+        results = res.json()
+        if len(results) > 0:
+            for data in results:
+                with st.container():
+                    st.markdown(f"#### 👤 {data['student_name']} ({data['student_class']})")
+                    if data['status'] == 'cheated':
+                        st.error(data['ai_feedback'])
+                    elif data['status'] == 'pending':
+                        st.warning("⏳ Жұмысың әлі тексерілуде... Сәлден соң қайта тексеріп көр.")
+                    else:
+                        col_score, col_fb = st.columns([1, 3])
+                        with col_score:
+                            st.metric("Жалпы ұпай", f"{data.get('score', 0)} / 20")
+                        with col_fb:
+                            with st.expander("📝 Мұғалімнің кері байланысы (AI)", expanded=True):
+                                st.write(data.get('ai_feedback', 'Кері байланыс дайындалуда...'))
+                    st.markdown("<br>", unsafe_allow_html=True)
+        else:
+            st.info("ℹ️ Бұл есім бойынша жұмыс табылған жоқ. Аты-жөніңізді дұрыс жазғаныңызды тексеріңіз.")
     else:
-        all_answers = {
-            "test": [q1, q2, q3, q4, q5, q6, q7, q8, q9, q10],
-            "b_section": {"11a": q11a, "11b": q11b, "12a": q12a, "12b": q12b, "13a": q13a, "13b": q13b},
-            "c_section": {"14a": q14a, "14b": q14b, "14c": q14c}
-        }
-        res = post_to_supabase({"student_name": student_name, "student_class": student_class, "answers": all_answers, "status": "pending"})
-        if res.status_code in [200, 201]:
-            st.success("Жұмысың сәтті тапсырылды!")
+        st.error(f"⚠️ Базаға қосылу қатесі: {res.status_code}")
